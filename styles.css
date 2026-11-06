@@ -7,3 +7,12 @@
 /* Dawn-to-dusk color grading affects only the world, never the accessible HUD. */
 #game canvas{transition:filter 1s ease}
 .is-night #game canvas{filter:brightness(.62) saturate(.82) hue-rotate(11deg)}
+
+/* Actual transparent 64×64 PNG atlas icons (cropped by ui-assets.js). */
+.fi-icon{width:30px;height:30px;object-fit:contain;image-rendering:pixelated;display:inline-block;vertical-align:middle;flex-shrink:0}
+.seed>span>.fi-icon{width:29px;height:29px}
+.bag>.fi-icon{width:29px;height:29px}
+.item>span>.fi-icon{width:36px;height:36px}
+.actions .fi-icon{width:29px;height:29px}
+.actions button#hitTouch .fi-icon{width:37px;height:37px}
+@media(max-width:720px){.seed>span>.fi-icon{width:23px;height:23px}.bag>.fi-icon{width:20px;height:20px}}
