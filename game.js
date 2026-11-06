@@ -76,6 +76,7 @@ function buy(id){if(!state||overlay!=="shop")return;const item=shopPrices().find
 }
 function sellAll(){if(!state||overlay!=="shop")return;const coins=state.bag.reduce((a,v,i)=>a+v*CROPS[i].sell,0);if(!coins)return;state.coins+=coins;state.bag=[0,0,0];sfx("coin");toast("✦ +"+coins+" ouro pela colheita");renderShop();updateUI();persist()}
 function enterRun(saved){
+ if(!scene){toast('O cenário ainda está carregando...');return}
  state=saved?JSON.parse(JSON.stringify(saved)):fresh();
  state.coins=Number(state.coins)||0;
  if(!state.levels)state.levels={weapon:0,boots:0,armor:0,turret:0,scarecrow:0};
@@ -104,7 +105,7 @@ function interact(index=-1){
 }
 function water(){if(!playing||paused)return;let hit=0;for(let i=0;i<state.plots.length;i++){let p=state.plots[i],xy=plotXY(i);if(p.crop>=0&&!p.water&&dist(xy.x,xy.y,state.px,state.py)<89){p.water=true;hit++;scene.syncCrop(i)}}if(hit){sfx("water");toast("💧 "+hit+" plantio(s) regado(s)")}else toast("💧 Nenhuma planta seca próxima.")}
 class FarmScene extends Phaser.Scene{
- constructor(){super("Farm");this.enemies=[];this.bullets=[];this.props=[];this.plotViews=[];this.held=false;this.attackCd=0;this.dashCd=0;this.invuln=0;this.spawnCd=2;this.uiCd=0;this.farmCd=0;this.turretCd=0;this.vfxTime=0;this.bossSpawned=false;}
+ constructor(){super("Farm");this.enemies=[];this.bullets=[];this.props=[];this.plotViews=[];this.held=false;this.attackCd=0;this.dashCd=0;this.invuln=0;this.spawnCd=2;this.uiCd=0;this.farmCd=0;this.turretCd=0;this.vfxTime=0;this.bossSpawned=false;this.facing={x:1,y:0};}
  create(){
   scene=this;window.FarmArt.create(this);this.createWorld();
   this.player=this.add.image(11*TILE,13*TILE,"player").setScale(1.15).setDepth(900);
