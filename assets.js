@@ -40,7 +40,8 @@
     ctx.imageSmoothingEnabled=false;
     ctx.clearRect(0,0,dest,dest);
     const sx=(index%columns)*frame,sy=Math.floor(index/columns)*frame;
-    ctx.drawImage(image,sx,sy,frame,frame,0,0,dest,dest);
+    const inset=frame===16?2:0;
+    ctx.drawImage(image,sx+inset,sy+inset,frame-inset*2,frame-inset*2,0,0,dest,dest);
     if(scene.textures.exists(key))scene.textures.remove(key);
     scene.textures.addCanvas(key,canvas);
     return true;
