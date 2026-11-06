@@ -66,3 +66,9 @@ MIT para código e arte original. Phaser possui licença MIT própria. Fonts hos
 - art.js — arte procedural como fallback para construções e efeitos ainda não substituídos.
 
 Os PNGs foram criados com geração de imagem do ChatGPT e convertidos em spritesheets utilizáveis; os controles e o salvamento anteriores permanecem inalterados.
+
+## Atlas v2 — spritesheets de células exatas
+
+O importador `assets-v2.js` e o runtime Phaser foram atualizados para spritesheets normalizados, com animações de caminhada, plantio, rega, ataque, monstros e tiles. As cinco folhas PNG devem estar na pasta `assets/v2/` com o tamanho especificado em [assets/v2/README.md](assets/v2/README.md); enquanto faltar algum PNG, o jogo usa os assets anteriores.
+
+O verificador `node scripts/check-v2-atlases.cjs` confere as dimensões pela assinatura PNG. Quando os cinco PNGs estão presentes, o smoke test também verifica seu carregamento na engine e registra 226 quadros ao todo.
