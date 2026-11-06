@@ -15,6 +15,13 @@ const fs = require("node:fs");
  await desktop.locator("#hud:not(.hidden)").waitFor({ timeout: 10000 });
  assert.equal(await desktop.evaluate(() => window.FarmAssetImport?.loaded),true,"Generated PNG sheets were loaded into Phaser");
  assert.equal(await desktop.evaluate(() => window.FarmAssetImport?.textureCount),42,"All 42 atlas frames were registered");
+ const hasV2 = require("node:fs").existsSync("assets/v2/farmer.png");
+ if(hasV2){
+   const v2=await desktop.evaluate(()=>({ready:window.FarmAssetsV2?.ready,loaded:window.FarmAssetsV2?.loaded,frames:window.FarmAssetsV2?.specs?.farmer?.cols}));
+   assert.equal(v2.ready,true,"All five frame-perfect image atlases loaded in Phaser");
+   assert.equal(v2.loaded.length,5,"All five texture sheets registered");
+   assert.equal(v2.frames,8,"Eight equal columns per farmer animation");
+ }
  assert.match(await desktop.locator("#phase").textContent(), /DIA 1/);
  await desktop.keyboard.down("d");
  await desktop.waitForTimeout(620);
