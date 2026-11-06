@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '22'
       - name: Syntax check
-        run: node --check art.js && node --check game.js && node --check tests/smoke.cjs
+        run: node --check art.js && node --check assets-v2.js && node --check game.js && node --check tests/smoke.cjs && node scripts/check-v2-atlases.cjs
       - name: Install Playwright
         run: npm install --no-save playwright@1.56.1
       - name: Start test server
