@@ -128,7 +128,31 @@ class FarmScene extends Phaser.Scene{
   this.cameras.main.fadeIn(300,0,0,0);
  }
  resizeCam(){const mobile=isTouch(),zoom=mobile?.86:1.12;this.cameras.main.setZoom(zoom);if(this.dark){this.dark.width=this.scale.width;this.dark.height=this.scale.height}if(playing)$("mobile").classList.toggle("hidden",!mobile)}
+ // Ground is centered on its grid cell. Props use a separate foot anchor.
+ // Decorative frames must never inherit the TILE+1 seam cover used by ground.
+ tilePoint(x,y){return {x:(x+.5)*TILE,y:(y+.5)*TILE}}
+ placeFence(tileX,tileY,modern,vertical=false){
+  const p=this.tilePoint(tileX,tileY);
+  const image=this.add.image(p.x,p.y,modern?"fi2-terrain":"fence",modern?16:undefined)
+    .setOrigin(.5,.5).setDepth(p.y+TILE*.45);
+  if(vertical)image.setAngle(90);
+  if(modern)image.setDisplaySize(TILE+4,TILE);
+  this.layoutDebug.fences.push({x:p.x,y:p.y,gridX:tileX,gridY:tileY,vertical,angle:image.angle});
+  return image;
+ }
+ placeScenery(tileX,tileY,type,modern,frame=null){
+  const p=this.tilePoint(tileX,tileY);
+  const footY=(tileY+.94)*TILE;
+  const useAtlas=modern&&(type==="tree"||type==="pine"||type==="rock");
+  const sprite=this.add.image(p.x,footY,useAtlas?"fi2-terrain":type,useAtlas?frame:undefined);
+  const cfg=type==="tree"?{scale:1.9,originY:.97}:type==="pine"?{scale:1.85,originY:.97}:
+    type==="rock"?{scale:.78,originY:.88}:{scale:.86,originY:1};
+  sprite.setOrigin(.5,cfg.originY).setScale(useAtlas?cfg.scale:(type==="tree"||type==="pine"?1:.86)).setDepth(footY);
+  this.layoutDebug.scenery.push({type,x:p.x,y:footY,gridX:tileX,gridY:tileY,originY:cfg.originY});
+  return sprite;
+ }
  createWorld(){
+  this.layoutDebug={fences:[],scenery:[]};
   const rnd=this.seeded(84621),modern=!!window.FarmAssetsV2?.has("terrain");const lawn=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){const n=Math.floor(rnd()*4);const ground=this.add.image((x+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"grass"+n,modern?n:undefined).setDepth(0);if(modern)ground.setDisplaySize(TILE+1,TILE+1);}
   // Winding village track and meadow around the planted grounds
   for(let y=5;y<23;y++){for(let x=7;x<13;x++){if((x===9||x===10||(y>=18&&x===8))&&!(y>=7&&y<=16&&x===12))this.add.image((x+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"path",modern?7:undefined).setAlpha(.96).setDepth(1).setDisplaySize(TILE+1,TILE+1)}}
@@ -140,12 +164,40 @@ class FarmScene extends Phaser.Scene{
    const crop=this.add.image(px,py,"carrot0").setDepth(py+10).setVisible(false);
    this.plotViews.push({wet,crop,stage:-1});
   }
-  // Fences, with an entrance near the south path
-  for(let x=FIELD.x-1;x<=FIELD.x+FIELD.w;x++){this.add.image((x+.5)*TILE,(FIELD.y-.35)*TILE,modern?"fi2-terrain":"fence",modern?16:undefined).setDepth((FIELD.y-.35)*TILE);if(x!==FIELD.x+Math.floor(FIELD.w/2)&&x!==FIELD.x+Math.floor(FIELD.w/2)-1)this.add.image((x+.5)*TILE,(FIELD.y+FIELD.h+.25)*TILE,modern?"fi2-terrain":"fence",modern?16:undefined).setDepth((FIELD.y+FIELD.h+.25)*TILE);}
-  for(let y=FIELD.y;y<FIELD.y+FIELD.h;y++){this.add.image((FIELD.x-.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"fence",modern?18:undefined).setDepth((y+.5)*TILE);this.add.image((FIELD.x+FIELD.w+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"fence",modern?18:undefined).setDepth((y+.5)*TILE)}
-  // Groves with soft clusters surrounding gameplay loop
-  for(let i=0;i<128;i++){let x=rand(1,W-1),y=rand(1,H-1);let nearFarm=(x>11&&x<27&&y>4&&y<20),nearVillage=(x>3&&x<12&&y>5&&y<22);if(nearFarm||nearVillage)continue;let px=x*TILE,py=y*TILE;let type=rnd()<.57?"tree":"pine";this.add.image(px,py,modern?"fi2-terrain":type,modern?(type==="pine"?27:24+Math.floor(rnd()*3)):undefined).setOrigin(.5,1).setDepth(py).setScale(modern?2.1:rand(.86,1.1));}
-  for(let i=0;i<32;i++){let x=rand(2,W-2),y=rand(2,H-2);if((x>12&&x<26&&y>5&&y<19)||(x>4&&x<12&&y>6&&y<22))continue;let t=rnd()<.7?"flower":"rock";this.add.image(x*TILE,y*TILE,modern?"fi2-terrain":t,modern?(t==="flower"?3:31):undefined).setDepth(y*TILE).setAlpha(.9)}
+  // One tile-centered fence segment per cell; vertical sides rotate the same art.
+  // Neither fence nor props inherit the one-pixel ground-tile seam fix.
+  const gateLeft=FIELD.x+Math.floor(FIELD.w/2)-1,gateRight=gateLeft+1;
+  for(let x=FIELD.x-1;x<=FIELD.x+FIELD.w;x++){
+   this.placeFence(x,FIELD.y-1,modern);
+   if(x!==gateLeft&&x!==gateRight)this.placeFence(x,FIELD.y+FIELD.h,modern);
+  }
+  for(let y=FIELD.y;y<FIELD.y+FIELD.h;y++){
+   this.placeFence(FIELD.x-1,y,modern,true);
+   this.placeFence(FIELD.x+FIELD.w,y,modern,true);
+  }
+  // Seeded positions and foot-centered anchors: trunks don't occupy grid corners.
+  // Minimum foot spacing avoids accidental sprite piles over the same cell.
+  const treeFeet=[];
+  for(let tries=0;tries<2300&&treeFeet.length<112;tries++){
+   const x=1+rnd()*(W-2),y=1+rnd()*(H-2);
+   const nearFarm=(x>10.7&&x<27.3&&y>3.8&&y<20.2);
+   const nearVillage=(x>2.5&&x<12.2&&y>4.5&&y<22.5);
+   const point=this.tilePoint(x,y);
+   if(nearFarm||nearVillage||treeFeet.some(p=>dist(point.x,point.y,p.x,p.y)<92))continue;
+   treeFeet.push(point);
+   const type=rnd()<.6?"tree":"pine";
+   const frame=type==="pine"?27:24+Math.floor(rnd()*3);
+   this.placeScenery(x,y,type,modern,frame);
+  }
+  for(let i=0;i<45;i++){
+   const x=2+rnd()*(W-4),y=2+rnd()*(H-4);
+   if((x>11&&x<27&&y>5&&y<19)||(x>4&&x<12&&y>6&&y<22))continue;
+   const type=rnd()<.65?"flower":"rock";
+   // Flower tiles contain a grass background; use the transparent flower prop instead.
+   this.placeScenery(x,y,type,modern,type==="rock"?31:null);
+  }
+  // Geometry is intentionally public for Playwright alignment assertions.
+  window.FarmLayoutDebug=this.layoutDebug;
   this.barn=this.add.image(6.8*TILE,10.3*TILE,"barn").setOrigin(.5,1).setDepth(10.3*TILE);
   this.stall=this.add.image(7.5*TILE,19.8*TILE,"market").setOrigin(.5,1).setDepth(19.8*TILE);
   this.core=this.add.image(6.4*TILE,13.8*TILE,"core").setOrigin(.5,1).setDepth(13.8*TILE);
