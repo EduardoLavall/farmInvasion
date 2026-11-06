@@ -134,7 +134,7 @@ class FarmScene extends Phaser.Scene{
   for(let x=10;x<=25;x++)this.add.image((x+.5)*TILE,18.5*TILE,modern?"fi2-terrain":"path",modern?7:undefined).setDepth(1);
   for(let y=0;y<FIELD.h;y++)for(let x=0;x<FIELD.w;x++){
    const px=(FIELD.x+x+.5)*TILE,py=(FIELD.y+y+.5)*TILE;
-   this.add.image(px,py,modern?"fi2-terrain":"soil"+((x*7+y*13)%3),modern?5+(x+y)%2:undefined).setDepth(2);
+   this.add.image(px,py,modern?"fi2-terrain":"soil"+((x*7+y*13)%3),modern?5:undefined).setDepth(2);
    const wet=this.add.ellipse(px,py+12,34,14,0x70c4ba,.0).setDepth(3);
    const crop=this.add.image(px,py,"carrot0").setDepth(py+10).setVisible(false);
    this.plotViews.push({wet,crop,stage:-1});
