@@ -21,6 +21,13 @@ jobs:
       - uses: actions/configure-pages@v5
         with:
           enablement: true
+      # A cancelled workflow can leave a Pages deployment locked on GitHub's side.
+      # Only cancel the known stale SHA; never cancel this run's deployment.
+      - name: Release old stuck Pages deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X POST "repos/${{ github.repository }}/pages/deployments/f4f77705609f22b21857c7b6c17843c75e8f05ee/cancel" || true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
