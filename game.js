@@ -101,16 +101,16 @@ function interact(index=-1){
  const xy=plotXY(i);if(dist(xy.x,xy.y,state.px,state.py)>145){toast("Você está muito longe da horta!",true);return}
  const p=state.plots[i];if(p.crop>=0){const crop=CROPS[p.crop];if(p.growth>=crop.grow){const amount=Math.random()<.19?2:1;state.bag[p.crop]+=amount;p.crop=-1;p.growth=0;p.water=false;scene.syncCrop(i);scene.floatText(xy.x,xy.y-14,"+"+amount+" "+crop.emoji,"#ffdd9c");sfx("harvest");toast(crop.emoji+" Colhido! Leve ao mercado.");}
  else{toast("⏳ Ainda crescendo... Regue com R.")}return}
- const k=state.selection;if(state.seeds[k]<1){toast("Sem sementes! Compre mais no mercado.",true);return}state.seeds[k]--;p.crop=k;p.growth=0;p.water=false;scene.syncCrop(i);scene.floatText(xy.x,xy.y-16,"🌱","#dbf4ae");sfx("plant");updateUI();
+ const k=state.selection;if(state.seeds[k]<1){toast("Sem sementes! Compre mais no mercado.",true);return}state.seeds[k]--;p.crop=k;p.growth=0;p.water=false;scene.playAction("farm");scene.syncCrop(i);scene.floatText(xy.x,xy.y-16,"🌱","#dbf4ae");sfx("plant");updateUI();
 }
-function water(){if(!playing||paused)return;let hit=0;for(let i=0;i<state.plots.length;i++){let p=state.plots[i],xy=plotXY(i);if(p.crop>=0&&!p.water&&dist(xy.x,xy.y,state.px,state.py)<89){p.water=true;hit++;scene.syncCrop(i)}}if(hit){sfx("water");toast("💧 "+hit+" plantio(s) regado(s)")}else toast("💧 Nenhuma planta seca próxima.")}
+function water(){if(!playing||paused)return;let hit=0;for(let i=0;i<state.plots.length;i++){let p=state.plots[i],xy=plotXY(i);if(p.crop>=0&&!p.water&&dist(xy.x,xy.y,state.px,state.py)<89){p.water=true;hit++;scene.syncCrop(i)}}if(hit){scene.playAction("farm");sfx("water");toast("💧 "+hit+" plantio(s) regado(s)")}else toast("💧 Nenhuma planta seca próxima.")}
 class FarmScene extends Phaser.Scene{
  constructor(){super("Farm");this.enemies=[];this.bullets=[];this.props=[];this.plotViews=[];this.held=false;this.attackCd=0;this.dashCd=0;this.invuln=0;this.spawnCd=2;this.uiCd=0;this.farmCd=0;this.turretCd=0;this.vfxTime=0;this.bossSpawned=false;this.facing={x:1,y:0};}
  preload(){window.FarmAssetImport?.preload(this);window.FarmAssetsV2?.preload(this)}
  create(){
   scene=this;window.FarmArt.create(this);window.FarmAssetImport?.apply(this);window.FarmAssetsV2?.apply(this);this.createWorld();
   this.player=this.add.sprite(11*TILE,13*TILE,window.FarmAssetsV2?.has("farmer")?"fi2-farmer":this.textures.exists("player_down0")?"player_down0":"player").setScale(window.FarmAssetsV2?.has("farmer")?.86:1.15).setDepth(900);
-  this.player.setOrigin(.5,.77);this.cameras.main.setBounds(0,0,WORLD_W,WORLD_H);
+  this.player.setOrigin(.5,.77);this.actionUntil=0;this.cameras.main.setBounds(0,0,WORLD_W,WORLD_H);
   this.cameras.main.startFollow(this.player,false,.10,.10);
   this.resizeCam();this.scale.on("resize",()=>this.resizeCam());
   this.keys=this.input.keyboard.addKeys({up:"W",down:"S",left:"A",right:"D",arrowUp:"UP",arrowDown:"DOWN",arrowLeft:"LEFT",arrowRight:"RIGHT",attack:"SPACE",dash:"SHIFT"});
@@ -153,6 +153,11 @@ class FarmScene extends Phaser.Scene{
   this.buildings=[];
  }
  seeded(seed){return()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}}
+ playAction(key){
+   if(!window.FarmAssetsV2?.has("farmer"))return;
+   this.actionUntil=this.time.now+(key==="strike"?360:540);
+   this.player.anims.play("fi2-"+key,true);
+ }
  setNight(){const night=!!(state&&state.phase==="night");$("app").classList.toggle("is-night",night);if(this.dark)this.dark.setAlpha(night?.12:0)}
  syncBuildings(){
   this.buildings.forEach(b=>b.destroy());this.buildings=[];if(!state)return;
@@ -188,7 +193,7 @@ class FarmScene extends Phaser.Scene{
   const d=Math.max(1,dist(tx,ty,px,py)),dx=(tx-px)/d,dy=(ty-py)/d;
   const s=this.add.image(px,py-12,"spark").setScale(.68).setTint(0xffd987).setDepth(1000);
   this.bullets.push({sprite:s,x:px,y:py-12,dx,dy,speed:440,life:1.25,damage:24+state.levels.weapon*7+Math.min(10,meta.souls),friendly:true});
-  this.attackCd=Math.max(.21,.40-state.levels.weapon*.012);this.player.setTint(0xfff1cc);this.time.delayedCall(95,()=>{if(this.player.active)this.player.clearTint()});sfx("hit");
+  this.playAction("strike");this.attackCd=Math.max(.21,.40-state.levels.weapon*.012);this.player.setTint(0xfff1cc);this.time.delayedCall(95,()=>{if(this.player.active)this.player.clearTint()});sfx("hit");
  }
  dash(){
   if(!playing||paused||this.dashCd>0)return;
@@ -235,7 +240,9 @@ class FarmScene extends Phaser.Scene{
   let mag=Math.hypot(dx,dy);if(mag>.05){dx/=Math.max(1,mag);dy/=Math.max(1,mag);this.facing={x:dx,y:dy};const speed=170+state.levels.boots*20;state.px=clamp(state.px+dx*dt*speed,32,WORLD_W-32);state.py=clamp(state.py+dy*dt*speed,32,WORLD_H-32);this.player.setFlipX(dx<-.1);}
   if(window.FarmAssetsV2?.has("farmer")){
    const direction=Math.abs(dx)>Math.abs(dy)?(dx<0?"left":"right"):(dy<0?"up":"down");
-   if(mag>.05){this.lastDirection=direction;this.player.anims.play("fi2-walk-"+direction,true);}
+   if(mag>.05)this.lastDirection=direction;
+   if(this.actionUntil>this.time.now){ /* farming or combat frames own the actor until completed */ }
+   else if(mag>.05){this.player.anims.play("fi2-walk-"+direction,true);}
    else{if(this.player.anims.isPlaying)this.player.anims.stop();this.player.setFrame(({down:0,left:8,right:16,up:24})[this.lastDirection||"down"]);}
    this.player.setFlipX(false);
   } else if(this.textures.exists("player_down0")){
