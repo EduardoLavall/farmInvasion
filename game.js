@@ -128,20 +128,20 @@ class FarmScene extends Phaser.Scene{
  }
  resizeCam(){const mobile=isTouch(),zoom=mobile?.86:1.12;this.cameras.main.setZoom(zoom);if(this.dark){this.dark.width=this.scale.width;this.dark.height=this.scale.height}if(playing)$("mobile").classList.toggle("hidden",!mobile)}
  createWorld(){
-  const rnd=this.seeded(84621),modern=!!window.FarmAssetsV2?.has("terrain");const lawn=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){const n=Math.floor(rnd()*4);this.add.image((x+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"grass"+n,modern?n:undefined).setDepth(0);}
+  const rnd=this.seeded(84621),modern=!!window.FarmAssetsV2?.has("terrain");const lawn=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){const n=Math.floor(rnd()*4);const ground=this.add.image((x+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"grass"+n,modern?n:undefined).setDepth(0);if(modern)ground.setDisplaySize(TILE+1,TILE+1);}
   // Winding village track and meadow around the planted grounds
-  for(let y=5;y<23;y++){for(let x=7;x<13;x++){if((x===9||x===10||(y>=18&&x===8))&&!(y>=7&&y<=16&&x===12))this.add.image((x+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"path",modern?7:undefined).setAlpha(.96).setDepth(1)}}
-  for(let x=10;x<=25;x++)this.add.image((x+.5)*TILE,18.5*TILE,modern?"fi2-terrain":"path",modern?7:undefined).setDepth(1);
+  for(let y=5;y<23;y++){for(let x=7;x<13;x++){if((x===9||x===10||(y>=18&&x===8))&&!(y>=7&&y<=16&&x===12))this.add.image((x+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"path",modern?7:undefined).setAlpha(.96).setDepth(1).setDisplaySize(TILE+1,TILE+1)}}
+  for(let x=10;x<=25;x++)this.add.image((x+.5)*TILE,18.5*TILE,modern?"fi2-terrain":"path",modern?7:undefined).setDepth(1).setDisplaySize(TILE+1,TILE+1);
   for(let y=0;y<FIELD.h;y++)for(let x=0;x<FIELD.w;x++){
    const px=(FIELD.x+x+.5)*TILE,py=(FIELD.y+y+.5)*TILE;
-   this.add.image(px,py,modern?"fi2-terrain":"soil"+((x*7+y*13)%3),modern?5:undefined).setDepth(2);
+   const soilTile=this.add.image(px,py,modern?"fi2-terrain":"soil"+((x*7+y*13)%3),modern?5:undefined).setDepth(2);if(modern)soilTile.setDisplaySize(TILE+1,TILE+1);
    const wet=this.add.ellipse(px,py+12,34,14,0x70c4ba,.0).setDepth(3);
    const crop=this.add.image(px,py,"carrot0").setDepth(py+10).setVisible(false);
    this.plotViews.push({wet,crop,stage:-1});
   }
   // Fences, with an entrance near the south path
   for(let x=FIELD.x-1;x<=FIELD.x+FIELD.w;x++){this.add.image((x+.5)*TILE,(FIELD.y-.35)*TILE,modern?"fi2-terrain":"fence",modern?16:undefined).setDepth((FIELD.y-.35)*TILE);if(x!==FIELD.x+Math.floor(FIELD.w/2)&&x!==FIELD.x+Math.floor(FIELD.w/2)-1)this.add.image((x+.5)*TILE,(FIELD.y+FIELD.h+.25)*TILE,modern?"fi2-terrain":"fence",modern?16:undefined).setDepth((FIELD.y+FIELD.h+.25)*TILE);}
-  for(let y=FIELD.y;y<FIELD.y+FIELD.h;y++){this.add.image((FIELD.x-.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"fence",modern?19:undefined).setDepth((y+.5)*TILE);this.add.image((FIELD.x+FIELD.w+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"fence",modern?19:undefined).setDepth((y+.5)*TILE)}
+  for(let y=FIELD.y;y<FIELD.y+FIELD.h;y++){this.add.image((FIELD.x-.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"fence",modern?18:undefined).setDepth((y+.5)*TILE);this.add.image((FIELD.x+FIELD.w+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"fence",modern?18:undefined).setDepth((y+.5)*TILE)}
   // Groves with soft clusters surrounding gameplay loop
   for(let i=0;i<128;i++){let x=rand(1,W-1),y=rand(1,H-1);let nearFarm=(x>11&&x<27&&y>4&&y<20),nearVillage=(x>3&&x<12&&y>5&&y<22);if(nearFarm||nearVillage)continue;let px=x*TILE,py=y*TILE;let type=rnd()<.57?"tree":"pine";this.add.image(px,py,modern?"fi2-terrain":type,modern?(type==="pine"?27:24+Math.floor(rnd()*3)):undefined).setOrigin(.5,1).setDepth(py).setScale(modern?2.1:rand(.86,1.1));}
   for(let i=0;i<32;i++){let x=rand(2,W-2),y=rand(2,H-2);if((x>12&&x<26&&y>5&&y<19)||(x>4&&x<12&&y>6&&y<22))continue;let t=rnd()<.7?"flower":"rock";this.add.image(x*TILE,y*TILE,modern?"fi2-terrain":t,modern?(t==="flower"?3:31):undefined).setDepth(y*TILE).setAlpha(.9)}
