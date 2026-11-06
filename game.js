@@ -106,9 +106,10 @@ function interact(index=-1){
 function water(){if(!playing||paused)return;let hit=0;for(let i=0;i<state.plots.length;i++){let p=state.plots[i],xy=plotXY(i);if(p.crop>=0&&!p.water&&dist(xy.x,xy.y,state.px,state.py)<89){p.water=true;hit++;scene.syncCrop(i)}}if(hit){sfx("water");toast("💧 "+hit+" plantio(s) regado(s)")}else toast("💧 Nenhuma planta seca próxima.")}
 class FarmScene extends Phaser.Scene{
  constructor(){super("Farm");this.enemies=[];this.bullets=[];this.props=[];this.plotViews=[];this.held=false;this.attackCd=0;this.dashCd=0;this.invuln=0;this.spawnCd=2;this.uiCd=0;this.farmCd=0;this.turretCd=0;this.vfxTime=0;this.bossSpawned=false;this.facing={x:1,y:0};}
+ preload(){window.FarmAssetImport?.preload(this)}
  create(){
-  scene=this;window.FarmArt.create(this);this.createWorld();
-  this.player=this.add.image(11*TILE,13*TILE,"player").setScale(1.15).setDepth(900);
+  scene=this;window.FarmArt.create(this);window.FarmAssetImport?.apply(this);this.createWorld();
+  this.player=this.add.image(11*TILE,13*TILE,this.textures.exists("player_down0")?"player_down0":"player").setScale(1.15).setDepth(900);
   this.player.setOrigin(.5,.77);this.cameras.main.setBounds(0,0,WORLD_W,WORLD_H);
   this.cameras.main.startFollow(this.player,false,.10,.10);
   this.resizeCam();this.scale.on("resize",()=>this.resizeCam());
@@ -232,6 +233,13 @@ class FarmScene extends Phaser.Scene{
   let dx=(this.keys.right.isDown||this.keys.arrowRight.isDown?1:0)-(this.keys.left.isDown||this.keys.arrowLeft.isDown?1:0)+mobileAxis.x;
   let dy=(this.keys.down.isDown||this.keys.arrowDown.isDown?1:0)-(this.keys.up.isDown||this.keys.arrowUp.isDown?1:0)+mobileAxis.y;
   let mag=Math.hypot(dx,dy);if(mag>.05){dx/=Math.max(1,mag);dy/=Math.max(1,mag);this.facing={x:dx,y:dy};const speed=170+state.levels.boots*20;state.px=clamp(state.px+dx*dt*speed,32,WORLD_W-32);state.py=clamp(state.py+dy*dt*speed,32,WORLD_H-32);this.player.setFlipX(dx<-.1);}
+  if(this.textures.exists("player_down0")){
+   const direction=Math.abs(dx)>Math.abs(dy)?(dx<0?"left":"right"):(dy<0?"up":"down");
+   if(mag>.05)this.lastDirection=direction;
+   const key="player_"+(this.lastDirection||"down")+(mag>.05?Math.floor(this.vfxTime*7)%4:0);
+   if(this.player.texture.key!==key)this.player.setTexture(key);
+   this.player.setFlipX(false);
+  }
   this.player.setPosition(state.px,state.py+Math.sin(this.vfxTime*11)*Math.min(2,mag*2));this.player.setDepth(state.py+6);this.player.setAlpha(this.invuln>0?(.60+Math.sin(this.vfxTime*50)*.2):1);
   if(this.keys.dash.isDown)this.dash();
   if(this.keys.attack.isDown||attackTouch)this.attack();
