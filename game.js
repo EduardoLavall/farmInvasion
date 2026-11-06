@@ -179,7 +179,7 @@ class FarmScene extends Phaser.Scene{
   // Minimum foot spacing avoids accidental sprite piles over the same cell.
   const treeFeet=[];
   for(let tries=0;tries<2300&&treeFeet.length<112;tries++){
-   const x=1+rnd()*(W-2),y=1+rnd()*(H-2);
+   const x=1+Math.floor(rnd()*(W-2)),y=1+Math.floor(rnd()*(H-2));
    const nearFarm=(x>10.7&&x<27.3&&y>3.8&&y<20.2);
    const nearVillage=(x>2.5&&x<12.2&&y>4.5&&y<22.5);
    const point=this.tilePoint(x,y);
@@ -190,7 +190,7 @@ class FarmScene extends Phaser.Scene{
    this.placeScenery(x,y,type,modern,frame);
   }
   for(let i=0;i<45;i++){
-   const x=2+rnd()*(W-4),y=2+rnd()*(H-4);
+   const x=2+Math.floor(rnd()*(W-4)),y=2+Math.floor(rnd()*(H-4));
    if((x>11&&x<27&&y>5&&y<19)||(x>4&&x<12&&y>6&&y<22))continue;
    const type=rnd()<.65?"flower":"rock";
    // Flower tiles contain a grass background; use the transparent flower prop instead.
