@@ -57,3 +57,12 @@ MVP offline local: localStorage (sem sincronização entre dispositivos). Para n
 ## Licença
 
 MIT para código e arte original. Phaser possui licença MIT própria. Fonts hospedadas pelo Google Fonts com fallback.
+
+## Pixel art gerada por imagem
+
+- assets/spritesheet.png — atlas de 30 sprites (24×24), incluindo quatro direções de caminhada, inimigos e crescimento das culturas.
+- assets/tileset.png — atlas de 12 tiles (16×16), incluindo grama, terra, caminho e água.
+- assets.js — extrai quadros dos PNGs para as texturas usadas pelo Phaser.
+- art.js — arte procedural como fallback para construções e efeitos ainda não substituídos.
+
+Os PNGs foram criados com geração de imagem do ChatGPT e convertidos em spritesheets utilizáveis; os controles e o salvamento anteriores permanecem inalterados.
