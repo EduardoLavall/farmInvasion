@@ -61,4 +61,4 @@ const fs = require("node:fs");
  assert.deepEqual(failures, [], "No uncaught JS errors");
  await browser.close();
  console.log("SMOKE PASSED: desktop play, farming, market purchase, pause, save/continue, mobile controls.");
-})().catch(error=>{console.error(error);process.exitCode=1});
+})().catch(error=>{console.error(error);process.exit(1)});
