@@ -65,7 +65,8 @@ function renderShop(){
  if(!state)return;$("shopGold").textContent=state.coins;const total=state.bag.reduce((n,v,i)=>n+v*CROPS[i].sell,0);$("salePrice").textContent="+"+total;
  $("sellBtn").disabled=total===0;
  $("items").innerHTML="";
- for(const item of shopPrices()){const card=document.createElement("div");card.className="item";const span=document.createElement("span");span.textContent=item.icon;const title=document.createElement("b");title.textContent=item.title;const desc=document.createElement("p");desc.textContent=item.desc;const btn=document.createElement("button");btn.textContent="✦ "+item.price+" COMPRAR";btn.disabled=state.coins<item.price||(item.id==="repair"&&state.base>=state.maxBase)||(item.id==="scarecrow"&&state.levels.scarecrow>=3)||(item.id==="turret"&&state.levels.turret>=4);btn.addEventListener("click",()=>buy(item.id));card.append(span,title,desc,btn);$("items").append(card)}
+ for(const item of shopPrices()){const card=document.createElement("div");card.className="item";card.dataset.itemId=item.id;const span=document.createElement("span");span.textContent=item.icon;const title=document.createElement("b");title.textContent=item.title;const desc=document.createElement("p");desc.textContent=item.desc;const btn=document.createElement("button");btn.textContent="✦ "+item.price+" COMPRAR";btn.disabled=state.coins<item.price||(item.id==="repair"&&state.base>=state.maxBase)||(item.id==="scarecrow"&&state.levels.scarecrow>=3)||(item.id==="turret"&&state.levels.turret>=4);btn.addEventListener("click",()=>buy(item.id));card.append(span,title,desc,btn);$("items").append(card)}
+ window.FarmUIAssets?.applyShop();
 }
 function buy(id){if(!state||overlay!=="shop")return;const item=shopPrices().find(a=>a.id===id);if(!item||state.coins<item.price)return;state.coins-=item.price;
  if(id.startsWith("seed")){const i=Number(id.slice(-1));state.seeds[i]+=CROPS[i].pack}
@@ -192,6 +193,15 @@ class FarmScene extends Phaser.Scene{
   if(target){tx=target.x;ty=target.y}else{const enemies=this.enemies.filter(e=>dist(e.x,e.y,px,py)<490).sort((a,b)=>dist(a.x,a.y,px,py)-dist(b.x,b.y,px,py));if(enemies[0]){tx=enemies[0].x;ty=enemies[0].y}else{tx=px+(this.facing.x||1)*200;ty=py+(this.facing.y||0)*200}}
   const d=Math.max(1,dist(tx,ty,px,py)),dx=(tx-px)/d,dy=(ty-py)/d;
   const s=this.add.image(px,py-12,"spark").setScale(.68).setTint(0xffd987).setDepth(1000);
+  // The sword graphic is a real 64x64 transparent frame from the exact-grid tools PNG.
+  if(window.FarmAssetsV2?.has("tools")){
+    const sword=this.add.image(px+dx*28,py-15+dy*18,"fi2-tools",0)
+      .setScale(.55).setOrigin(.5,.78).setDepth(py+90);
+    sword.setRotation(Math.atan2(dy,dx)+Math.PI/4);
+    this.tweens.add({targets:sword,alpha:0,scale:.84,angle:sword.angle+42,
+      x:px+dx*42,y:py-15+dy*29,duration:210,ease:"Quad.easeOut",
+      onComplete:()=>sword.destroy()});
+  }
   this.bullets.push({sprite:s,x:px,y:py-12,dx,dy,speed:440,life:1.25,damage:24+state.levels.weapon*7+Math.min(10,meta.souls),friendly:true});
   this.playAction("strike");this.attackCd=Math.max(.21,.40-state.levels.weapon*.012);this.player.setTint(0xfff1cc);this.time.delayedCall(95,()=>{if(this.player.active)this.player.clearTint()});sfx("hit");
  }
