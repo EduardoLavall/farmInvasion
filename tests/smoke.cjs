@@ -21,6 +21,9 @@ const fs = require("node:fs");
    assert.equal(v2.ready,true,"All five frame-perfect image atlases loaded in Phaser");
    assert.equal(v2.loaded.length,5,"All five texture sheets registered");
    assert.equal(v2.frames,8,"Eight equal columns per farmer animation");
+   await desktop.waitForFunction(() => window.FarmUIAssets?.ready === true, {timeout:10000});
+   assert.equal(await desktop.locator(".seed img.fi-icon").count(), 3, "Three crop icons extracted from the 10x5 items atlas");
+   assert.equal(await desktop.locator(".bag #bagCount").count(), 1, "Inventory count remains visible after icon replacement");
  }
  assert.match(await desktop.locator("#phase").textContent(), /DIA 1/);
  await desktop.keyboard.down("d");
@@ -32,6 +35,7 @@ const fs = require("node:fs");
  await desktop.keyboard.press(" ");
  await desktop.locator("#marketBtn").click();
  await desktop.locator("#shop:not(.hidden)").waitFor();
+ assert.ok(await desktop.locator("#items .item img.fi-icon").count() >= 6, "Shop displays generated tool and item icons");
  const before = Number(await desktop.locator("#shopGold").textContent());
  assert.ok(before>=0, "Gold is numeric");
  await desktop.locator("#items .item button").first().click();
