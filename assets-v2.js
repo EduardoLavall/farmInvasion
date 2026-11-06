@@ -41,6 +41,11 @@
         if(api.loaded.includes("enemies")&&!scene.anims.exists(key))
           scene.anims.create({key,frames:scene.anims.generateFrameNumbers(textureNames.enemies,{start:row*8,end:row*8+7}),frameRate:name==="boss"?5:7,repeat:-1});
       }
+      for(const [key,row] of Object.entries({farm:4,strike:5})) {
+        const anim="fi2-"+key;
+        if(api.loaded.includes("farmer")&&!scene.anims.exists(anim))
+          scene.anims.create({key:anim,frames:scene.anims.generateFrameNumbers(textureNames.farmer,{start:row*8,end:row*8+7}),frameRate:11,repeat:0});
+      }
       api.ready=api.loaded.length===5;
       console.info("Farm Invasion v2 atlases:",api.loaded.join(","), api.failed);
       return api.ready;
