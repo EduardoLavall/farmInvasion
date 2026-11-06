@@ -13,6 +13,21 @@ const fs = require("node:fs");
  await desktop.waitForTimeout(1000);
  await desktop.locator("#startBtn").click();
  await desktop.locator("#hud:not(.hidden)").waitFor({ timeout: 10000 });
+ const geometry = await desktop.evaluate(() => window.FarmLayoutDebug);
+ assert.ok(geometry, "Game exposes grid placement geometry");
+ assert.equal(geometry.fences.length,44, "All fence segments including the two-cell gate");
+ for(const fence of geometry.fences){
+   assert.equal((fence.x-24)%48,0,"Fence horizontal anchor is centered on a grid cell");
+   assert.equal((fence.y-24)%48,0,"Fence vertical anchor is centered on a grid cell");
+   assert.equal(fence.angle,fence.vertical?90:0,"Vertical fence pieces are rotated by 90 degrees");
+ }
+ const trees=geometry.scenery.filter(p => p.type==="tree" || p.type==="pine");
+ assert.ok(trees.length>=40,"Seeded forest has stable tree placements");
+ for(const prop of geometry.scenery)assert.equal((prop.x-24)%48,0,"Ground prop is centered within its tile");
+ for(let i=0;i<trees.length;i++)for(let j=i+1;j<trees.length;j++){
+   assert.ok(Math.hypot(trees[i].x-trees[j].x,trees[i].y-trees[j].y)>=92,"Tree bases do not accidentally overlap");
+ }
+
  assert.equal(await desktop.evaluate(() => window.FarmAssetImport?.loaded),true,"Generated PNG sheets were loaded into Phaser");
  assert.equal(await desktop.evaluate(() => window.FarmAssetImport?.textureCount),42,"All 42 atlas frames were registered");
  const hasV2 = require("node:fs").existsSync("assets/v2/farmer.png");
