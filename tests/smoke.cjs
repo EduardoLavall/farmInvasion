@@ -49,6 +49,7 @@ const fs = require("node:fs");
  await desktop.locator("#hud:not(.hidden)").waitFor();
  await desktop.waitForTimeout(10500);
  assert.match(await desktop.locator("#phase").textContent(), /INVASÃO/, "Night phase is active");
+ assert.equal(await desktop.locator("#app").getAttribute("class"), "is-night", "Night palette activated");
  await desktop.screenshot({path:"artifacts/night.png"});
  const mobile = await browser.newPage({ viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1 });
  mobile.on("pageerror",e => failures.push("mobile: "+e.message));
