@@ -42,7 +42,13 @@
   }
   function apply(){
     document.querySelectorAll(".seed").forEach((btn,i)=>replace(btn.querySelector("span"),"seed"+i));
-    replace(document.querySelector(".bag"),"bag");
+    const bag=document.querySelector(".bag");
+    if(bag&&!bag.querySelector("img.fi-icon")){
+      const data=iconData("bag");if(data){
+        for(const child of [...bag.childNodes])if(child.nodeType===Node.TEXT_NODE)child.remove();
+        const img=document.createElement("img");img.className="fi-icon";img.alt="";img.setAttribute("aria-hidden","true");img.src=data;bag.insertBefore(img,bag.firstChild);
+      }
+    }
     const controls=[["waterTouch","water"],["useTouch","use"],["hitTouch","attack"]];
     for(const [id,name] of controls){
       const button=document.getElementById(id);
