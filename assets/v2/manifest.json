@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "game": "Farm Invasion",
+  "assets": {
+    "farmer": {
+      "path": "assets/v2/farmer.png",
+      "columns": 8,
+      "rows": 6,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 48
+    },
+    "enemies": {
+      "path": "assets/v2/enemies.png",
+      "columns": 8,
+      "rows": 4,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 32
+    },
+    "items": {
+      "path": "assets/v2/items.png",
+      "columns": 10,
+      "rows": 5,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 50
+    },
+    "tools": {
+      "path": "assets/v2/tools.png",
+      "columns": 8,
+      "rows": 4,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 32
+    },
+    "terrain": {
+      "path": "assets/v2/terrain.png",
+      "columns": 8,
+      "rows": 8,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 64
+    }
+  },
+  "animations": {
+    "farmer": {
+      "down": 0,
+      "left": 1,
+      "right": 2,
+      "up": 3,
+      "farm": 4,
+      "attack": 5
+    },
+    "enemies": {
+      "slime": 0,
+      "bat": 1,
+      "goblin": 2,
+      "boss": 3
+    }
+  }
+}
