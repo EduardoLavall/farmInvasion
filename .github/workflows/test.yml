@@ -3,6 +3,9 @@ on:
   push:
     branches: [main]
   pull_request:
+concurrency:
+  group: farm-game-playtests
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -20,6 +23,7 @@ jobs:
       - name: Start test server
         run: python3 -m http.server 8080 > /tmp/farm-http.log 2>&1 &
       - name: Browser playtest
+        timeout-minutes: 4
         run: node tests/smoke.cjs
       - uses: actions/upload-artifact@v4
         if: always()
