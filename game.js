@@ -106,10 +106,10 @@ function interact(index=-1){
 function water(){if(!playing||paused)return;let hit=0;for(let i=0;i<state.plots.length;i++){let p=state.plots[i],xy=plotXY(i);if(p.crop>=0&&!p.water&&dist(xy.x,xy.y,state.px,state.py)<89){p.water=true;hit++;scene.syncCrop(i)}}if(hit){sfx("water");toast("💧 "+hit+" plantio(s) regado(s)")}else toast("💧 Nenhuma planta seca próxima.")}
 class FarmScene extends Phaser.Scene{
  constructor(){super("Farm");this.enemies=[];this.bullets=[];this.props=[];this.plotViews=[];this.held=false;this.attackCd=0;this.dashCd=0;this.invuln=0;this.spawnCd=2;this.uiCd=0;this.farmCd=0;this.turretCd=0;this.vfxTime=0;this.bossSpawned=false;this.facing={x:1,y:0};}
- preload(){window.FarmAssetImport?.preload(this)}
+ preload(){window.FarmAssetImport?.preload(this);window.FarmAssetsV2?.preload(this)}
  create(){
-  scene=this;window.FarmArt.create(this);window.FarmAssetImport?.apply(this);this.createWorld();
-  this.player=this.add.image(11*TILE,13*TILE,this.textures.exists("player_down0")?"player_down0":"player").setScale(1.15).setDepth(900);
+  scene=this;window.FarmArt.create(this);window.FarmAssetImport?.apply(this);window.FarmAssetsV2?.apply(this);this.createWorld();
+  this.player=this.add.sprite(11*TILE,13*TILE,window.FarmAssetsV2?.has("farmer")?"fi2-farmer":this.textures.exists("player_down0")?"player_down0":"player").setScale(window.FarmAssetsV2?.has("farmer")?.86:1.15).setDepth(900);
   this.player.setOrigin(.5,.77);this.cameras.main.setBounds(0,0,WORLD_W,WORLD_H);
   this.cameras.main.startFollow(this.player,false,.10,.10);
   this.resizeCam();this.scale.on("resize",()=>this.resizeCam());
@@ -128,23 +128,23 @@ class FarmScene extends Phaser.Scene{
  }
  resizeCam(){const mobile=isTouch(),zoom=mobile?.86:1.12;this.cameras.main.setZoom(zoom);if(this.dark){this.dark.width=this.scale.width;this.dark.height=this.scale.height}if(playing)$("mobile").classList.toggle("hidden",!mobile)}
  createWorld(){
-  const rnd=this.seeded(84621);const lawn=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){const n=Math.floor(rnd()*4);this.add.image((x+.5)*TILE,(y+.5)*TILE,"grass"+n).setDepth(0);}
+  const rnd=this.seeded(84621),modern=!!window.FarmAssetsV2?.has("terrain");const lawn=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){const n=Math.floor(rnd()*4);this.add.image((x+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"grass"+n,modern?n:undefined).setDepth(0);}
   // Winding village track and meadow around the planted grounds
-  for(let y=5;y<23;y++){for(let x=7;x<13;x++){if((x===9||x===10||(y>=18&&x===8))&&!(y>=7&&y<=16&&x===12))this.add.image((x+.5)*TILE,(y+.5)*TILE,"path").setAlpha(.87).setDepth(1)}}
-  for(let x=10;x<=25;x++)this.add.image((x+.5)*TILE,18.5*TILE,"path").setDepth(1);
+  for(let y=5;y<23;y++){for(let x=7;x<13;x++){if((x===9||x===10||(y>=18&&x===8))&&!(y>=7&&y<=16&&x===12))this.add.image((x+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"path",modern?7:undefined).setAlpha(.96).setDepth(1)}}
+  for(let x=10;x<=25;x++)this.add.image((x+.5)*TILE,18.5*TILE,modern?"fi2-terrain":"path",modern?7:undefined).setDepth(1);
   for(let y=0;y<FIELD.h;y++)for(let x=0;x<FIELD.w;x++){
    const px=(FIELD.x+x+.5)*TILE,py=(FIELD.y+y+.5)*TILE;
-   this.add.image(px,py,"soil"+((x*7+y*13)%3)).setDepth(2);
+   this.add.image(px,py,modern?"fi2-terrain":"soil"+((x*7+y*13)%3),modern?5+(x+y)%2:undefined).setDepth(2);
    const wet=this.add.ellipse(px,py+12,34,14,0x70c4ba,.0).setDepth(3);
    const crop=this.add.image(px,py,"carrot0").setDepth(py+10).setVisible(false);
    this.plotViews.push({wet,crop,stage:-1});
   }
   // Fences, with an entrance near the south path
-  for(let x=FIELD.x-1;x<=FIELD.x+FIELD.w;x++){this.add.image((x+.5)*TILE,(FIELD.y-.35)*TILE,"fence").setDepth((FIELD.y-.35)*TILE);if(x!==FIELD.x+Math.floor(FIELD.w/2)&&x!==FIELD.x+Math.floor(FIELD.w/2)-1)this.add.image((x+.5)*TILE,(FIELD.y+FIELD.h+.25)*TILE,"fence").setDepth((FIELD.y+FIELD.h+.25)*TILE);}
-  for(let y=FIELD.y;y<FIELD.y+FIELD.h;y++){this.add.image((FIELD.x-.5)*TILE,(y+.5)*TILE,"fence").setDepth((y+.5)*TILE);this.add.image((FIELD.x+FIELD.w+.5)*TILE,(y+.5)*TILE,"fence").setDepth((y+.5)*TILE)}
+  for(let x=FIELD.x-1;x<=FIELD.x+FIELD.w;x++){this.add.image((x+.5)*TILE,(FIELD.y-.35)*TILE,modern?"fi2-terrain":"fence",modern?16:undefined).setDepth((FIELD.y-.35)*TILE);if(x!==FIELD.x+Math.floor(FIELD.w/2)&&x!==FIELD.x+Math.floor(FIELD.w/2)-1)this.add.image((x+.5)*TILE,(FIELD.y+FIELD.h+.25)*TILE,modern?"fi2-terrain":"fence",modern?16:undefined).setDepth((FIELD.y+FIELD.h+.25)*TILE);}
+  for(let y=FIELD.y;y<FIELD.y+FIELD.h;y++){this.add.image((FIELD.x-.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"fence",modern?19:undefined).setDepth((y+.5)*TILE);this.add.image((FIELD.x+FIELD.w+.5)*TILE,(y+.5)*TILE,modern?"fi2-terrain":"fence",modern?19:undefined).setDepth((y+.5)*TILE)}
   // Groves with soft clusters surrounding gameplay loop
-  for(let i=0;i<128;i++){let x=rand(1,W-1),y=rand(1,H-1);let nearFarm=(x>11&&x<27&&y>4&&y<20),nearVillage=(x>3&&x<12&&y>5&&y<22);if(nearFarm||nearVillage)continue;let px=x*TILE,py=y*TILE;let type=rnd()<.57?"tree":"pine";this.add.image(px,py,type).setOrigin(.5,1).setDepth(py).setScale(rand(.86,1.1));}
-  for(let i=0;i<32;i++){let x=rand(2,W-2),y=rand(2,H-2);if((x>12&&x<26&&y>5&&y<19)||(x>4&&x<12&&y>6&&y<22))continue;let t=rnd()<.7?"flower":"rock";this.add.image(x*TILE,y*TILE,t).setDepth(y*TILE).setAlpha(.9)}
+  for(let i=0;i<128;i++){let x=rand(1,W-1),y=rand(1,H-1);let nearFarm=(x>11&&x<27&&y>4&&y<20),nearVillage=(x>3&&x<12&&y>5&&y<22);if(nearFarm||nearVillage)continue;let px=x*TILE,py=y*TILE;let type=rnd()<.57?"tree":"pine";this.add.image(px,py,modern?"fi2-terrain":type,modern?(type==="pine"?27:24+Math.floor(rnd()*3)):undefined).setOrigin(.5,1).setDepth(py).setScale(modern?2.1:rand(.86,1.1));}
+  for(let i=0;i<32;i++){let x=rand(2,W-2),y=rand(2,H-2);if((x>12&&x<26&&y>5&&y<19)||(x>4&&x<12&&y>6&&y<22))continue;let t=rnd()<.7?"flower":"rock";this.add.image(x*TILE,y*TILE,modern?"fi2-terrain":t,modern?(t==="flower"?3:31):undefined).setDepth(y*TILE).setAlpha(.9)}
   this.barn=this.add.image(6.8*TILE,10.3*TILE,"barn").setOrigin(.5,1).setDepth(10.3*TILE);
   this.stall=this.add.image(7.5*TILE,19.8*TILE,"market").setOrigin(.5,1).setDepth(19.8*TILE);
   this.core=this.add.image(6.4*TILE,13.8*TILE,"core").setOrigin(.5,1).setDepth(13.8*TILE);
@@ -159,7 +159,7 @@ class FarmScene extends Phaser.Scene{
   for(let i=0;i<state.levels.turret;i++){const x=(4.3+(i%2)*4.2)*TILE,y=(14.5+Math.floor(i/2)*2.4)*TILE;this.buildings.push(this.add.image(x,y,"turret").setOrigin(.5,1).setDepth(y))}
   if(state.levels.scarecrow)this.buildings.push(this.add.image(12.2*TILE,13.1*TILE,"scarecrow").setOrigin(.5,1).setDepth(13.1*TILE));
  }
- syncCrop(i){if(!state)return;const p=state.plots[i],v=this.plotViews[i],xy=plotXY(i);v.wet.setAlpha(p.water?.23:0);if(p.crop<0){v.crop.setVisible(false);v.stage=-1;return}const crop=CROPS[p.crop];const level=p.growth>=crop.grow?2:p.growth>=crop.grow*.34?1:0;v.crop.setVisible(true);v.crop.setTexture(crop.texture+level);v.crop.setScale(level===2?1.0:.85);v.stage=level;v.crop.setY(xy.y+4);}
+ syncCrop(i){if(!state)return;const p=state.plots[i],v=this.plotViews[i],xy=plotXY(i);v.wet.setAlpha(p.water?.23:0);if(p.crop<0){v.crop.setVisible(false);v.stage=-1;return}const crop=CROPS[p.crop];const level=p.growth>=crop.grow?2:p.growth>=crop.grow*.34?1:0;v.crop.setVisible(true);if(window.FarmAssetsV2?.has("items")){ const base=[30,35,40][p.crop];v.crop.setTexture("fi2-items",base+(level===0?1:level===1?2:4));v.crop.setScale(level===2?.72:.62); }else{v.crop.setTexture(crop.texture+level);v.crop.setScale(level===2?1.0:.85);}v.stage=level;v.crop.setY(xy.y+4);}
  syncCrops(){for(let i=0;i<this.plotViews.length;i++)this.syncCrop(i)}
  clearThreats(){this.enemies.forEach(e=>e.sprite.destroy());this.enemies=[];this.bullets.forEach(b=>b.sprite.destroy());this.bullets=[];}
  resetRun(){
@@ -177,7 +177,7 @@ class FarmScene extends Phaser.Scene{
   let type=boss?"boss":Math.random()<Math.min(.25+state.day*.02,.46)?"slime":Math.random()<.45?"bat":state.day>=3&&Math.random()<.23?"mushroom":"goblin";
   const data={slime:[42,49,8,6],goblin:[63,42,11,10],bat:[29,85,7,9],mushroom:[86,32,16,15],boss:[480,23,22,80]}[type];
   const hp=data[0]*(1+(state.day-1)*.18),spd=data[1]*(1+Math.min(state.day*.035,.32));
-  const sprite=this.add.image(x,y,type).setDepth(y).setScale(type==="boss"?1.15:1);
+  const modernEnemy=window.FarmAssetsV2?.has("enemies")&&type!=="mushroom";const sprite=this.add.sprite(x,y,modernEnemy?"fi2-enemies":type,modernEnemy?({slime:0,bat:8,goblin:16,boss:24}[type]):undefined).setDepth(y).setScale(modernEnemy?(type==="boss"?1.4:.83):type==="boss"?1.15:1);if(modernEnemy)sprite.play("fi2-"+type);
   const e={sprite,x,y,type,hp,maxHp:hp,speed:spd,damage:data[2],reward:data[3],cooldown:0,bob:rand(0,6),hit:0};this.enemies.push(e);
   if(boss){announce("☠ GUARDIÃO DA FLORESTA APARECEU!");sfx("wave")}
  }
@@ -233,7 +233,12 @@ class FarmScene extends Phaser.Scene{
   let dx=(this.keys.right.isDown||this.keys.arrowRight.isDown?1:0)-(this.keys.left.isDown||this.keys.arrowLeft.isDown?1:0)+mobileAxis.x;
   let dy=(this.keys.down.isDown||this.keys.arrowDown.isDown?1:0)-(this.keys.up.isDown||this.keys.arrowUp.isDown?1:0)+mobileAxis.y;
   let mag=Math.hypot(dx,dy);if(mag>.05){dx/=Math.max(1,mag);dy/=Math.max(1,mag);this.facing={x:dx,y:dy};const speed=170+state.levels.boots*20;state.px=clamp(state.px+dx*dt*speed,32,WORLD_W-32);state.py=clamp(state.py+dy*dt*speed,32,WORLD_H-32);this.player.setFlipX(dx<-.1);}
-  if(this.textures.exists("player_down0")){
+  if(window.FarmAssetsV2?.has("farmer")){
+   const direction=Math.abs(dx)>Math.abs(dy)?(dx<0?"left":"right"):(dy<0?"up":"down");
+   if(mag>.05){this.lastDirection=direction;this.player.anims.play("fi2-walk-"+direction,true);}
+   else{if(this.player.anims.isPlaying)this.player.anims.stop();this.player.setFrame(({down:0,left:8,right:16,up:24})[this.lastDirection||"down"]);}
+   this.player.setFlipX(false);
+  } else if(this.textures.exists("player_down0")){
    const direction=Math.abs(dx)>Math.abs(dy)?(dx<0?"left":"right"):(dy<0?"up":"down");
    if(mag>.05)this.lastDirection=direction;
    const key="player_"+(this.lastDirection||"down")+(mag>.05?Math.floor(this.vfxTime*7)%4:0);
