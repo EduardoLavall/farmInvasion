@@ -13,6 +13,8 @@ const fs = require("node:fs");
  await desktop.waitForTimeout(1000);
  await desktop.locator("#startBtn").click();
  await desktop.locator("#hud:not(.hidden)").waitFor({ timeout: 10000 });
+ assert.equal(await desktop.evaluate(() => window.FarmAssetImport?.loaded),true,"Generated PNG sheets were loaded into Phaser");
+ assert.equal(await desktop.evaluate(() => window.FarmAssetImport?.textureCount),42,"All 42 atlas frames were registered");
  assert.match(await desktop.locator("#phase").textContent(), /DIA 1/);
  await desktop.keyboard.down("d");
  await desktop.waitForTimeout(620);
