@@ -152,7 +152,7 @@ class FarmScene extends Phaser.Scene{
   this.buildings=[];
  }
  seeded(seed){return()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}}
- setNight(){if(this.dark)this.dark.setAlpha(state&&state.phase==="night"?.31:.03)}
+ setNight(){const night=!!(state&&state.phase==="night");$("app").classList.toggle("is-night",night);if(this.dark)this.dark.setAlpha(night?.12:0)}
  syncBuildings(){
   this.buildings.forEach(b=>b.destroy());this.buildings=[];if(!state)return;
   for(let i=0;i<state.levels.turret;i++){const x=(4.3+(i%2)*4.2)*TILE,y=(14.5+Math.floor(i/2)*2.4)*TILE;this.buildings.push(this.add.image(x,y,"turret").setOrigin(.5,1).setDepth(y))}
@@ -172,7 +172,7 @@ class FarmScene extends Phaser.Scene{
  plantTick(dt){for(let i=0;i<state.plots.length;i++){const p=state.plots[i];if(p.crop<0)continue;const grow=CROPS[p.crop].grow;if(p.growth>=grow)continue;const before=p.growth;p.growth=Math.min(grow,p.growth+dt*(state.phase==="day"?1:.65)*(p.water?1.85:1));if(Math.floor(before/(grow/3))!==Math.floor(p.growth/(grow/3))||p.growth===grow)this.syncCrop(i)}}
  spawnEnemy(boss=false){
   if(this.enemies.length>80)return;
-  const edge=Math.floor(rand(0,4));let x,y;if(edge===0){x=rand(30,WORLD_W-30);y=40}else if(edge===1){x=WORLD_W-35;y=rand(30,WORLD_H-30)}else if(edge===2){x=rand(30,WORLD_W-30);y=WORLD_H-35}else{x=35;y=rand(30,WORLD_H-30)}
+  const angle=rand(0,Math.PI*2),radius=rand(465,625);let x=clamp(state.px+Math.cos(angle)*radius,42,WORLD_W-42),y=clamp(state.py+Math.sin(angle)*radius,42,WORLD_H-42)
   let type=boss?"boss":Math.random()<Math.min(.25+state.day*.02,.46)?"slime":Math.random()<.45?"bat":state.day>=3&&Math.random()<.23?"mushroom":"goblin";
   const data={slime:[42,49,8,6],goblin:[63,42,11,10],bat:[29,85,7,9],mushroom:[86,32,16,15],boss:[480,23,22,80]}[type];
   const hp=data[0]*(1+(state.day-1)*.18),spd=data[1]*(1+Math.min(state.day*.035,.32));
