@@ -40,6 +40,8 @@ const fs = require("node:fs");
  await desktop.locator("#continueBtn").click();
  await desktop.locator("#hud:not(.hidden)").waitFor({timeout:10000});
  await desktop.screenshot({ path: "artifacts/continued.png" });
+ await desktop.locator("#pauseBtn").click();
+ await desktop.locator("#menuBtn").click();
  await desktop.evaluate(() => { const data = JSON.parse(localStorage.getItem("farmInvasion.run.1")); data.state.phase = "night"; data.state.day = 3; data.state.time = 17; localStorage.setItem("farmInvasion.run.1", JSON.stringify(data)); });
  await desktop.reload();
  await desktop.locator("#continueBtn:not(.hidden)").waitFor();
