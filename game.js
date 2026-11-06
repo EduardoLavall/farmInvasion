@@ -94,11 +94,11 @@ function nextPhase(){
 function isTouch(){return matchMedia("(pointer:coarse)").matches||window.innerWidth<700}
 function getPlotIndex(x,y){const gx=Math.floor(x/TILE)-FIELD.x,gy=Math.floor(y/TILE)-FIELD.y;return gx<0||gx>=FIELD.w||gy<0||gy>=FIELD.h?-1:gy*FIELD.w+gx}
 function plotXY(i){return {x:(FIELD.x+(i%FIELD.w)+.5)*TILE,y:(FIELD.y+Math.floor(i/FIELD.w)+.5)*TILE}}
-function nearestPlot(){let result=-1,dd=88;for(let i=0;i<state.plots.length;i++){let p=plotXY(i),d=dist(p.x,p.y,state.px,state.py);if(d<dd){dd=d;result=i}}return result}
+function nearestPlot(){let result=-1,dd=124;for(let i=0;i<state.plots.length;i++){let p=plotXY(i),d=dist(p.x,p.y,state.px,state.py);if(d<dd){dd=d;result=i}}return result}
 function interact(index=-1){
  if(!playing||paused)return;
  let i=index>=0?index:nearestPlot();if(i<0){toast("🌱 Aproxime-se da horta!",true);return}
- const xy=plotXY(i);if(dist(xy.x,xy.y,state.px,state.py)>110){toast("Você está muito longe da horta!",true);return}
+ const xy=plotXY(i);if(dist(xy.x,xy.y,state.px,state.py)>145){toast("Você está muito longe da horta!",true);return}
  const p=state.plots[i];if(p.crop>=0){const crop=CROPS[p.crop];if(p.growth>=crop.grow){const amount=Math.random()<.19?2:1;state.bag[p.crop]+=amount;p.crop=-1;p.growth=0;p.water=false;scene.syncCrop(i);scene.floatText(xy.x,xy.y-14,"+"+amount+" "+crop.emoji,"#ffdd9c");sfx("harvest");toast(crop.emoji+" Colhido! Leve ao mercado.");}
  else{toast("⏳ Ainda crescendo... Regue com R.")}return}
  const k=state.selection;if(state.seeds[k]<1){toast("Sem sementes! Compre mais no mercado.",true);return}state.seeds[k]--;p.crop=k;p.growth=0;p.water=false;scene.syncCrop(i);scene.floatText(xy.x,xy.y-16,"🌱","#dbf4ae");sfx("plant");updateUI();
